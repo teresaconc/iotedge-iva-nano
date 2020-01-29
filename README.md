@@ -88,7 +88,6 @@ Now that you have a working connection to your Nano, we will download and instal
     ```bash
     cd /data
     sudo wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1VtOKX0sIvpMpejBiZ_t5HB-LEyVaDHXW' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1VtOKX0sIvpMpejBiZ_t5HB-LEyVaDHXW" -O setup.tar.bz2 && rm -rf /tmp/cookies.txt
-
     sudo tar -xjvf setup.tar.bz2
     ```
 
