@@ -47,7 +47,7 @@ We'll create a new IoT Edge device in your IoT Central application that will ena
 
 ## Setting up your device
 
-We'll start from a blank Jetson installation (Jetpack v4.3),copy a few files locally that are needed for the application such as video files to simulate RTSP cameras and deepstream configuration files, and install IoT Edge.
+We'll start from a blank Jetson installation (Jetpack v4.3), copy a few files locally that are needed for the application such as video files to simulate RTSP cameras and deepstream configuration files, and install IoT Edge.
 
 ### Jetson Nano developer kit setup 
 1. Follow the [instructions for creating a NVIDIA Jetson Nano base image](https://developer.nvidia.com/embedded/jetson-nano-developer-kit)
@@ -87,7 +87,8 @@ Now that you have a working connection to your Nano, we will download and instal
 
     ```bash
     cd /data
-    sudo wget -O setup.tar.bz2 --no-check-certificate "https://onedrive.live.com/download?0C0A4A69A0CDCB4C&resid=0C0A4A69A0CDCB4C%21588067&authkey=AHdENUEwNjr_WxE"
+    sudo wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1VtOKX0sIvpMpejBiZ_t5HB-LEyVaDHXW' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1VtOKX0sIvpMpejBiZ_t5HB-LEyVaDHXW" -O setup.tar.bz2 && rm -rf /tmp/cookies.txt
+
     sudo tar -xjvf setup.tar.bz2
     ```
 
@@ -171,16 +172,27 @@ In the interest of time, we've already built a first solution that is composed o
 
 Let's see it in action!
 
-1. Plug your device, press the power button and give it a few minutes to boot. It should automatically connect to the conference's wifi (?), start its application thanks to IoT Edge and report back its usage and IP address to IoT Central.
+1. Plug your device, press the power button and give it a few minutes to boot. It should automatically connect to the network, start its application thanks to IoT Edge and report back its usage and IP address to IoT Central.
 2. Connect to  IoT Central application you previously created with your Microsoft account. Please ask for help if you dont have one.
 3. Go to `Devices`, click on the device you created and go to the `Dashboard` tab.
-4. Verify that active telemetry is being sent by the device to IoT Central (?)
+4. Verify that active telemetry is being sent by the device to IoT Central
 5. Copy the `RTSP Video URL` from the `Device` tab
 6. Open VLC and go to `Media` > `Open Network Stream` and paste the `RTSP Video URL` copied above as the network URL and click `Play`
 
 At this point, you should see 4 video streams being processed to detect cars and people with a Resnet 10 AI model.
 
 ![4 video streams processed real-time](./assets/4VideosProcessedRTSP.png "8 video streams processed in real-time by a Jetson Nano with Deepstream and IoT Edge")
+
+
+[*Note*] In case the device gets too hot it may shutdown/reboot to prevent damage to the SOC. You can minimize this risk by spinning the fan to the maximum speed with the jetson_clocks script. This will also boost the performance of your Jetson Nano
+
+```bash
+sudo jetson_clocks
+```
+To check the current status of your device including Fan speed and Power mode:
+```bash
+sudo jetson_clocks --show
+```
 
 ### Understanding NVIDIA DeepStream
 
@@ -255,7 +267,7 @@ This sends a command to the device to update its DeepStream configuration file w
 
 Within a minute, DeepStream should restart. You can observe its status in IoT Central via the `Modules` tab. Once `deepstream` module is back to `Running`, copy again the `RTSP Video Url` field from the `Device` tab and give it to VLC (`Media` > `Open Network Stream` > paste the `RTSP Video URL` > `Play`).
 
-You should now detect people from your phone's camera. The count of `Person` in the `dashboard` tab in IoT Central should go up (?). We've just remotely updated the configuration of this intelligent video analytics solution!
+You should now detect people from your phone's camera. The count of `Person` in the `dashboard` tab in IoT Central should go up. We've just remotely updated the configuration of this intelligent video analytics solution!
 
 ## Use an AI model to detect custom visual anomalies
 
