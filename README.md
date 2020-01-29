@@ -68,7 +68,7 @@ To access your Jetson terminal you can set up a ssh connection (you need to know
 2. Connect through the USB device mode (serial port)
     1. Power the Jetson from the barrel jack. You should have a jumper on pin J48 to enable this. Otherwise, the power will be supplied by the micro-usb port.
     2. Connect the Jetson to your laptop through the micro-USB interface.
-    3. Set a serial port connection from your laptop. [More details [below](#Connect through a Serial Port)]. 
+    3. Set a serial port connection from your laptop. More details [below](#connect-through-a-serial-port). 
     4. If you have one of the SD cards provided by us, both the username and password are "jetson".
 
 3. Determine the IP address ``jetson_ip_address`` with the ``ifconfig`` command.
