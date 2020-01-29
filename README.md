@@ -53,8 +53,6 @@ We'll start from a blank Jetson installation (Jetpack v4.3), copy a few files lo
 1. Follow the [instructions for creating a NVIDIA Jetson Nano base image](https://developer.nvidia.com/embedded/jetson-nano-developer-kit)
 2. Optionally [create a swapfile on the Jetson Nano](https://github.com/JetsonHacksNano/installSwapfile) to gain a bit more memory.
 
-*In the interest of time, if you don't have already the latest Jetpack 4.3 image installed, we can provide you one SD card already flashed*
-
 ### Access Jetson from your Laptop
 
 To access your Jetson terminal you can set up a ssh connection (you need to know the ``jetson_ip_address``) or connect through a serial port in Jetson's USB device mode. Alternatively, you can also connect through serial port to discover your IP address and then connect through ssh. 
