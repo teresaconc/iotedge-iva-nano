@@ -12,15 +12,15 @@ We'll operate this solution with an aesthetic UI provided by [IoT Central](https
 
 ![Jetson Nano](./assets/JetsonNano.png "NVIDIA Jetson Nano device used to run Deepstream with IoT Edge")
 
-- **Hardware**: You need a [NVIDIA Jetson Nano device](https://developer.nvidia.com/embedded/buy/jetson-nano-devkit) with a [5V-4A barrel jack power supply like this one](https://www.adafruit.com/product/1466), which are provided in this workshop.
-- **A laptop**: You need a laptop to connect to your Jetson Nano device and see its results with a browser and an ssh client.
-- **VLC**: To visualize the output of the Jetson Nano without HDMI screen (there is only one per table), we'll use VLC from your laptop to view a RTSP video stream of the processed videos. [Install VLC](https://www.videolan.org/vlc/index.html) if you dont have it yet.
+- **Hardware**: You need a [NVIDIA Jetson Nano device](https://developer.nvidia.com/embedded/buy/jetson-nano-devkit) with a [5V-4A barrel jack power supply like this one](https://www.adafruit.com/product/1466)
+- **A laptop**: You need a laptop to connect to your Jetson Nano device and see its results with a browser and an ssh client or serial port connection.
+- **VLC**: To visualize the output of the Jetson Nano without a HDMI screen, we'll use VLC from your laptop to view a RTSP video stream of the processed videos. [Install VLC](https://www.videolan.org/vlc/index.html) if you dont have it yet.
 - **Have an Azure subscription**: You need an Azure subscription to create an Azure IoT Central  application.
 - **Have a phone with IP Camera Lite app**: To view & process a live video stream, you can use your phone with the IP Camera Lite app ([iOS](https://apps.apple.com/us/app/ip-camera-lite/id1013455241), [Android](https://play.google.com/store/apps/details?id=com.shenyaocn.android.WebCam&hl=en_US)) as an IP camera.
 
 ## Setting up a new IoT Central app
 
-Let's create a new IoT Central app to which we will connect our Jetson Nano later on.
+Let's first create a new IoT Central app to which we will connect our Jetson Nano later on.
 
 ### Create a new IoT Central app
 
@@ -47,17 +47,43 @@ We'll create a new IoT Edge device in your IoT Central application that will ena
 
 ## Setting up your device
 
-We'll start from a blank Jetson installation (Jetpack v4.3), copy a few files locally that are needed for the application such as video files to simulate RTSP cameras and deepstream configuration files, and install IoT Edge.
+We'll start from a blank Jetson installation (Jetpack v4.3),copy a few files locally that are needed for the application such as video files to simulate RTSP cameras and deepstream configuration files, and install IoT Edge.
 
+### Jetson Nano developer kit setup 
 1. Follow the [instructions for creating a NVIDIA Jetson Nano base image](https://developer.nvidia.com/embedded/jetson-nano-developer-kit)
 2. Optionally [create a swapfile on the Jetson Nano](https://github.com/JetsonHacksNano/installSwapfile) to gain a bit more memory.
-3. On your Jetson Nano create a folder name `data` at the root:
+
+*In the interest of time, if you don't have already the latest Jetpack 4.3 image installed, we can provide you one SD card already flashed*
+
+### Access Jetson from your Laptop
+
+To access your Jetson terminal you can set up a ssh connection (you need to know the ``jetson_ip_address``) or connect through a serial port in Jetson's USB device mode. Alternatively, you can also connect through serial port to discover your IP address and then connect through ssh. 
+
+#### Connect to the network - Ethernet / WiFi
+
+1. Connect the Jetson to the same network as your desktop computer/laptop:
+    1. __WiFi__: if your WiFi hasn't been setup automatically already and you don't have a monitor and keyboard, you can connect via device mode (see below),       open a terminal, and then use the ``nmcli`` tool to connect to a WiFi network.  Find more details [below](#extras).
+    2. __Ethernet__: you should connect to the Ethernet hub provided. Please ask for assistance if you can't.
+
+2. Connect through the USB device mode (serial port)
+    1. Power the Jetson from the barrel jack. You should have a jumper on pin J48 to enable this. Otherwise, the power will be supplied by the micro-usb port.
+    2. Connect the Jetson to your laptop through the micro-USB interface.
+    3. Set a serial port connection from your laptop. [More details [below](#Connect through a Serial Port)]. 
+    4. If you have one of the SD cards provided by us, both the username and password are "jetson".
+
+3. Determine the IP address ``jetson_ip_address`` with the ``ifconfig`` command.
+
+
+### Application setup
+Now that you have a working connection to your Nano, we will download and install the necessary requirements for our application.
+
+1. On your Jetson Nano create a folder name `data` at the root:
 
     ```bash
     sudo mkdir /data
     ```
 
-4. Download and extra setup files in the `data` directory:
+2. Download and extra setup files in the `data` directory:
 
     ```bash
     cd /data
@@ -65,13 +91,13 @@ We'll start from a blank Jetson installation (Jetpack v4.3), copy a few files lo
     sudo tar -xjvf setup.tar.bz2
     ```
 
-5. Make the folder accessible from a normal user account:
+3. Make the folder accessible from a normal user account:
 
     ```bash
     sudo chmod -R 777 /data
     ```
 
-6. Install IoT Edge (instructions copied [from here](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) for convenience):
+4. Install IoT Edge (instructions copied [from here](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) for convenience):
 
     ```bash
     curl https://packages.microsoft.com/config/ubuntu/18.04/multiarch/prod.list > ./microsoft-prod.list
@@ -81,8 +107,13 @@ We'll start from a blank Jetson installation (Jetpack v4.3), copy a few files lo
     sudo apt-get update
     sudo apt-get install iotedge
     ```
+*If you a running from a clean Jetpack install you might need to install ``curl``*
+```bash
+sudo apt-get update
+sudo apt-get install curl 
+```
 
-7. Connect your device to your IoT Central application by editing IoT Edge configuration file:
+4. Connect your device to your IoT Central application by editing IoT Edge configuration file:
 
     - Use your favorite text editor to edit IoT Edge configuration file:
 
@@ -123,7 +154,8 @@ We'll start from a blank Jetson installation (Jetpack v4.3), copy a few files lo
 
     - After a few moments the Edge runtime restarts and establishes a connection with your IoT Central application.
 
-Note that the first time that you connect your IoT Edge device to IoT Central, it will take time to start the entire solution since it first needs to download ~2Gbs of IoT Edge modules.
+Note that the first time that you connect your IoT Edge device to IoT Central, it will take time to start the entire solution since it first needs to download ~2Gbs of IoT Edge modules. 
+You can check if the modules are running under the Modules tab.
 
 ## Running the solution
 
@@ -139,13 +171,12 @@ In the interest of time, we've already built a first solution that is composed o
 
 Let's see it in action!
 
-1. Plug your device, press the power button and give it a few minutes to boot. It should automatically connect to the conference's wifi, start its application thanks to IoT Edge and report back its usage and IP address to IoT Central.
-2. Connect to [this IoT Central application](https://deepstream-on-iot-edge.azureiotcentral.com/) with your Microsoft account. Please ask for help if you dont have access.
-3. Go to `Devices` and find the device number corresponding to your Jetson Nano (You should have received this number from the proctors and will range from 01-45, for example if you received 01 then your device will be jetson-nano-01)
-4. Click on this device and go to the `Dashboard` tab
-5. Verify that active telemetry is being sent by the device to IoT Central
-6. Copy the `RTSP Video URL` from the `Device` tab
-7. Open VLC and go to `Media` > `Open Network Stream` and paste the `RTSP Video URL` copied above as the network URL and click `Play`
+1. Plug your device, press the power button and give it a few minutes to boot. It should automatically connect to the conference's wifi (?), start its application thanks to IoT Edge and report back its usage and IP address to IoT Central.
+2. Connect to  IoT Central application you previously created with your Microsoft account. Please ask for help if you dont have one.
+3. Go to `Devices`, click on the device you created and go to the `Dashboard` tab.
+4. Verify that active telemetry is being sent by the device to IoT Central (?)
+5. Copy the `RTSP Video URL` from the `Device` tab
+6. Open VLC and go to `Media` > `Open Network Stream` and paste the `RTSP Video URL` copied above as the network URL and click `Play`
 
 At this point, you should see 4 video streams being processed to detect cars and people with a Resnet 10 AI model.
 
@@ -161,15 +192,8 @@ You can learn more about its architecture in [NVIDIA's official documentation](h
 
 To better understand how NVIDIA DeepStream works, let's have a look at its configuration file.
 
-From your favourite SSH client:
 
-1. Open an SSH connection with the IP address found in the `RTSP Video URL` field above. Username is `iotedge` and so is the default password.
-
-    ```bash
-    ssh iotedge@YOUR_IP_ADDRESS
-    ```
-
-2. Open up the configuration file of DeepStream to understand its structure:
+1. In Jetson, open up the configuration file of DeepStream to understand its structure:
 
     ```bash
     nano /data/misc/storage/DSconfig.txt
@@ -186,7 +210,15 @@ Observe in particular:
 IoT Edge connects to IoT Central with the regular Module SDK. Telemetry, Properties and Commands that the IoT Edge Central bridge module sends follow a PnP format, enforced in the Cloud by IoT Central. IoT Central enforces them against a Device Capability Model, which is a file that defines what this IoT Edge device is capable of doing.
 
 - Click on `Devices` in the left nav of the IoT Central application
-- Observe the templates in the second column: they define all the devices that this IoT Central application understands. All the Jetson Nano devices of this workshop are using a version of the `NVIDIA Jetson Nano (Airlift)` device template. In the case of IoT Edge, an IoT Edge deployment manifest is attached to a DCM version to create a device template. If you want to see the details on how a Device Capability Model look like, you can look at [this file in this repo](https://github.com/ebertrams/iotedge-iva-nano/blob/master/NVIDIAJetsonNanoDcm.json).
+- Observe the templates in the second column: they define all the devices that this IoT Central application understands. All the Jetson Nano devices of this workshop are using a version of the `NVIDIA Jetson Nano (Workshop)` device template. In the case of IoT Edge, an IoT Edge deployment manifest is attached to a DCM version to create a device template. If you want to see the details on how a Device Capability Model look like, you can look at [this file in this repo](https://github.com/ebertrams/iotedge-iva-nano/blob/master/NVIDIAJetsonNanoDcm.json).
+
+### Troubleshooting your Deepstream model
+
+To debug your DeepStream module (or any of the others), look at the last 200 lines of its logs:
+
+```bash
+iotedge logs NVIDIADeepStreamSDK --tail 200 -f
+```
 
 ## Operating the solution
 
@@ -201,7 +233,6 @@ Let's first verify that your phone works as an RTSP camera properly:
 - Open the the IP Camera Lite
 - Go to Settings and remove the User and Password on the RTSP feed
 - Click on `Turn on IP Camera Server`
-
 
 Let's just verify that the camera is functional. With VLC:
 
@@ -224,7 +255,7 @@ This sends a command to the device to update its DeepStream configuration file w
 
 Within a minute, DeepStream should restart. You can observe its status in IoT Central via the `Modules` tab. Once `deepstream` module is back to `Running`, copy again the `RTSP Video Url` field from the `Device` tab and give it to VLC (`Media` > `Open Network Stream` > paste the `RTSP Video URL` > `Play`).
 
-You should now detect people from your phone's camera. The count of `Person` in the `dashboard` tab in IoT Central should go up. We've just remotely updated the configuration of this intelligent video analytics solution!
+You should now detect people from your phone's camera. The count of `Person` in the `dashboard` tab in IoT Central should go up (?). We've just remotely updated the configuration of this intelligent video analytics solution!
 
 ## Use an AI model to detect custom visual anomalies
 
@@ -269,7 +300,7 @@ Finally, we'll deploy this custom vision model to the Jetson Nano using IoT Cent
 
 - Go to the `Manage` tab (beware of the sorting o f the fields)
 - Make sure the `Demo Mode` is unchecked
-- The 3 input video for 3 manufacturing lines have been hardcoded into the device to avoid network issues. You would normally have to input valid RTSP input sources in the first 3 Video Stream Url properties. You can put any values for now in these fields.
+- The 3 input video for 3 manufacturing lines have been hardcoded into the device to avoid network issues. You would normally have to input valid RTSP input sources in the first 3 Video Stream Url properties. You can put any values in these fields.
 - Select `Custom Vision` as the `AI model Type`
 - Paste the URI of your custom vision model in the `Custom Vision Model Url`
 - Update the `Primary Detection Class` to be `Up` and the `Secondary Detection Class` to be `Down`
@@ -281,4 +312,59 @@ We are now visualizing the processing of 3 real time (e.g. 30fps 1080p) video fe
 
 ![Custom Vision](./assets/sodaCans.png "3 soda cans manufacturing lines are bieing monitored with a custom AI model built with Custom Vision")
 
-Thank you for attending this workshop! There are other content that you can try with your Jetson Nano at [http://aka.ms/jetson-on-azure](http://aka.ms/jetson-on-azure)!
+Thank you for attending this workshop! Other content and resources:
+* [Jetson Nano + Microsoft Azure](http://aka.ms/jetson-on-azure)!
+* [Explore Deepstream](https://developer.nvidia.com/deepstream-sdk) 
+* [Two days to a demo tutorial series with Jetson](https://developer.nvidia.com/embedded/twodaystoademo)
+* [NVIDIA Training, Labs and Nanodegres](nvidia.com/DLI)
+
+
+## Extras
+
+### Connect to WiFi from terminal
+
+To connect your Jetson to a WiFi network from a terminal, follow these steps
+
+1. Re-scan available WiFi networks
+
+    ```bash
+    nmcli device wifi rescan
+    ```
+
+2. List available WiFi networks, and find the ``ssid_name`` of your network.
+
+    ```bash
+    nmcli device wifi list
+    ```
+3. Connect to a selected WiFi network
+
+    ```bash
+    nmcli device wifi connect <ssid_name> password <password>
+
+### Connect through a Serial Port
+
+You'll need a serial terminal application (nstructions adapted [from here](https://www.jetsonhacks.com/2019/08/21/jetson-nano-headless-setup/) for convenience):
+
+#### Ubuntu (screen):
+
+```bash
+sudo apt-get install screen
+```
+Find the device name. It will show up in the /dev directory as a ttyACM* device (for example /dev/ttyACM0).
+
+```bash
+screen /dev/ttyACM0 115200
+```
+
+#### Mac (screen):
+Find the device name. It will show up in the /dev directory as a tty.usbmodem* device (something similar to /dev/tty.usbmodem148303).
+
+```bash
+screen /dev/tty.usbmodem148303 115200
+```
+
+#### Windows (PuTTY)
+
+On Windows the Jetson is a COM* device.
+Find the device name by looking into the Device Manager COM ports.
+Under Windows using puTTY, you check the serial connection, enter the COM port number, and set the speed to 115200.
