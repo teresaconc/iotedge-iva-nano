@@ -181,7 +181,7 @@ At this point, you should see 4 video streams being processed to detect cars and
 ![4 video streams processed real-time](./assets/4VideosProcessedRTSP.png "8 video streams processed in real-time by a Jetson Nano with Deepstream and IoT Edge")
 
 
-[*Note*] In case the device gets too hot it may shutdown/reboot to prevent damage to the SOC. You can minimize this risk by spinning the fan to the maximum speed with the jetson_clocks script. This will also boost the performance of your Jetson Nano
+[*Note*] In case the device gets too hot it might shutdown/reboot to prevent damage to the SoC. You can minimize this risk by spinning the fan to the maximum speed with the jetson_clocks script. This will also boost the performance of your Jetson Nano.
 
 ```bash
 sudo jetson_clocks
